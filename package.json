@@ -1,0 +1,7 @@
+{
+  "name": "shellvage-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}
