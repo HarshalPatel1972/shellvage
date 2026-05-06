@@ -1,0 +1,15 @@
+:root {
+  --bg-base: #0D0D0F;
+  --bg-panel: #141416;
+  --bg-surface: #1A1A1E;
+  --bg-hover: #222228;
+  --border: #2A2A32;
+  --ember: #E8A045;
+  --text-primary: #E8E8E6;
+  --text-secondary: #A0A0A0;
+  --text-muted: #555555;
+  --signal: #4ADE80;
+  --error: #FF4444;
+  --annotation: #E8A045;
+}
+body { background: var(--bg-base); color: var(--text-primary); margin: 0; font-family: sans-serif; }

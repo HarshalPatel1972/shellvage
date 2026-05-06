@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.tauri.app/2.0.0/tauri.conf.json",
+  "productName": "Shellvage",
+  "version": "1.0.0",
+  "identifier": "com.shellvage.app",
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Shellvage",
+        "width": 1000,
+        "height": 700
+      }
+    ]
+  }
+}
