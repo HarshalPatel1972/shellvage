@@ -1,15 +1,319 @@
 :root {
-  --bg-base: #0D0D0F;
-  --bg-panel: #141416;
-  --bg-surface: #1A1A1E;
-  --bg-hover: #222228;
-  --border: #2A2A32;
-  --ember: #E8A045;
-  --text-primary: #E8E8E6;
-  --text-secondary: #A0A0A0;
-  --text-muted: #555555;
-  --signal: #4ADE80;
-  --error: #FF4444;
-  --annotation: #E8A045;
+  /* Core Palette */
+  --bg-base: #0A0A0C;
+  --bg-panel: #111114;
+  --bg-surface: #18181B;
+  --bg-hover: #212124;
+  --border: #27272A;
+  --border-bright: #3F3F46;
+  
+  /* Brand - Salvage Amber */
+  --ember: #F59E0B;
+  --ember-glow: rgba(245, 158, 11, 0.15);
+  --ember-muted: #B45309;
+  
+  /* Text */
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #52525B;
+  
+  /* Status */
+  --signal: #10B981;
+  --error: #EF4444;
+  
+  /* Spacing & Radii */
+  --radius: 8px;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
-body { background: var(--bg-base); color: var(--text-primary); margin: 0; font-family: sans-serif; }
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Layout Containers */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  height: 56px;
+  background: var(--bg-panel);
+  border-bottom: 1px border var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  -webkit-app-region: drag;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  color: var(--ember);
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px var(--ember-glow));
+}
+
+.logo-text {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.search-container {
+  position: relative;
+  -webkit-app-region: no-drag;
+}
+
+.search-input {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  padding-right: 40px;
+  color: var(--text-primary);
+  font-size: 13px;
+  width: 280px;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--ember);
+  box-shadow: 0 0 0 2px var(--ember-glow);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 320px;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.session-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.session-item {
+  width: 100%;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.session-item:hover {
+  background: var(--bg-hover);
+}
+
+.session-item.active {
+  background: var(--bg-hover);
+  border-left: 3px solid var(--ember);
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+}
+
+.content-header {
+  padding: 24px 32px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.session-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.session-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.command-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+.directory-group {
+  margin-bottom: 32px;
+}
+
+.directory-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.directory-path {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.directory-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Command Block */
+.command-block {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.command-block.failed {
+  border-left: 2px solid var(--error);
+}
+
+.command-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.command-prompt {
+  color: var(--ember);
+  font-family: var(--font-mono);
+  font-weight: bold;
+}
+
+.command-text {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.output-container {
+  padding: 0 16px 16px;
+}
+
+.output-box {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Footer */
+.footer {
+  height: 32px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 8px var(--signal);
+}
+
+/* Buttons */
+.btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--ember);
+  color: var(--bg-base);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
