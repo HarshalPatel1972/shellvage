@@ -4,14 +4,18 @@
   "description": "Salvage your sessions",
   "main": "dist/index.js",
   "bin": {
-    "shellvage": "./dist/index.js"
+    "shellvage": "./dist/index.js",
+    "shellvage-capture": "./dist/capture/capture-result.js",
+    "shellvage-prompt": "./dist/indicator/prompt.js"
   },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "tsc -w"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3",
+    "sqlite3": "^5.1.7",
+    "sqlite": "^5.1.1",
     "chalk": "^4.1.2",
     "docx": "^8.5.0",
     "puppeteer": "^22.4.1",
