@@ -1,20 +1,26 @@
-import { getDb } from '../db/init';
-import { palette } from '../brand';
+import { getActiveSession, createSession } from '../db/session';
+import { addCommand } from '../db/command';
+import chalk from 'chalk';
+import os from 'os';
 
-export function note(text: string) {
-  const db = getDb();
-  const stmt = db.prepare(`SELECT id, annotation FROM commands ORDER BY timestamp DESC LIMIT 1`);
-  const row = stmt.get() as { id: string, annotation: string | null } | undefined;
+export async function note(text: string) {
+  const shell = process.env.SHELL || 'unknown';
+  let s = await getActiveSession(shell);
   
-  if (!row) {
-    console.log(palette.error('No previous command found to annotate.'));
-    return;
+  if (!s) {
+    s = await createSession({
+      shell,
+      hostname: os.hostname(),
+      username: os.userInfo().username,
+    });
   }
 
-  let newAnnotation = row.annotation ? row.annotation + '\n' + text : text;
-  
-  const updateStmt = db.prepare(`UPDATE commands SET annotation = ? WHERE id = ?`);
-  updateStmt.run(newAnnotation, row.id);
-  
-  console.log(palette.signal('Annotated last command.'));
+  await addCommand({
+    session_id: s.id,
+    directory: process.cwd(),
+    command: 'note',
+    annotation: text
+  });
+
+  console.log(`${chalk.green('✓')} Note added to current session.`);
 }

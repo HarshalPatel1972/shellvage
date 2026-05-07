@@ -1,34 +1,24 @@
-import { getActiveSession } from '../db/session';
 import { getDb } from '../db/init';
+import { getActiveSession } from '../db/session';
+import chalk from 'chalk';
 import { palette } from '../brand';
 
-export function tag(label: string, sessionId?: string) {
-  const db = getDb();
+export async function tag(tagName: string, sessionId?: string) {
+  const db = await getDb();
   let id = sessionId;
-  
   if (!id) {
-    const shell = process.env.SHELL || 'unknown';
-    const session = getActiveSession(shell);
-    if (!session) {
-      console.log(palette.error('No active session found.'));
-      return;
-    }
-    id = session.id;
+    const s = await getActiveSession(process.env.SHELL || 'unknown');
+    if (!s) return console.log('No active session.');
+    id = s.id;
   }
 
-  const stmt = db.prepare(`SELECT tags FROM sessions WHERE id = ?`);
-  const row = stmt.get(id) as { tags: string } | undefined;
-  if (!row) {
-    console.log(palette.error('Session not found.'));
-    return;
-  }
+  const session = await db.get(`SELECT tags FROM sessions WHERE id = ?`, [id]) as {tags: string};
+  if (!session) return console.log('Session not found.');
 
-  const tags = JSON.parse(row.tags || '[]');
-  if (!tags.includes(label)) {
-    tags.push(label);
-    const updateStmt = db.prepare(`UPDATE sessions SET tags = ? WHERE id = ?`);
-    updateStmt.run(JSON.stringify(tags), id);
+  const tags = JSON.parse(session.tags || '[]');
+  if (!tags.includes(tagName)) {
+    tags.push(tagName);
+    await db.run(`UPDATE sessions SET tags = ? WHERE id = ?`, [JSON.stringify(tags), id]);
+    console.log(`${chalk.green('✓')} Tag ${palette.ember.bold(tagName)} added to session ${id.substring(0, 8)}`);
   }
-  
-  console.log(palette.signal(`Added tag '${label}' to session ${id}`));
 }

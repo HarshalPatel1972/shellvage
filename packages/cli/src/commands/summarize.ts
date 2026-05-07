@@ -6,11 +6,11 @@ import { getActiveSession } from '../db/session';
 export async function summarizeCmd(sessionId?: string) {
   let id = sessionId;
   if (!id) {
-    const s = getActiveSession(process.env.SHELL || 'unknown');
+    const s = await getActiveSession(process.env.SHELL || 'unknown');
     if (!s) return console.log('No active session.');
     id = s.id;
   }
-  const data = buildSessionData(id);
+  const data = await buildSessionData(id);
   if (!data) return;
 
   console.log('Generating summary...');

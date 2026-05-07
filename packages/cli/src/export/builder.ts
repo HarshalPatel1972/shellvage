@@ -30,12 +30,12 @@ export interface ExportSession {
   sections: ExportSection[];
 }
 
-export function buildSessionData(sessionId: string): ExportSession | null {
-  const db = getDb();
-  const session = db.prepare(`SELECT * FROM sessions WHERE id = ?`).get(sessionId) as Session;
+export async function buildSessionData(sessionId: string): Promise<ExportSession | null> {
+  const db = await getDb();
+  const session = await db.get(`SELECT * FROM sessions WHERE id = ?`, [sessionId]) as Session | undefined;
   if (!session) return null;
 
-  const commands = db.prepare(`SELECT * FROM commands WHERE session_id = ? ORDER BY timestamp ASC`).all(sessionId) as CommandRecord[];
+  const commands = await db.all(`SELECT * FROM commands WHERE session_id = ? ORDER BY timestamp ASC`, [sessionId]) as CommandRecord[];
   
   const sectionsMap = new Map<string, ExportCommand[]>();
   for (const cmd of commands) {
@@ -48,8 +48,8 @@ export function buildSessionData(sessionId: string): ExportSession | null {
       output: cmd.output || '',
       exitCode: cmd.exit_code || 0,
       durationMs: cmd.duration_ms || 0,
-      gitBranch: cmd.git_branch,
-      annotation: cmd.annotation,
+      gitBranch: cmd.git_branch || undefined,
+      annotation: cmd.annotation || undefined,
       isRedacted: cmd.is_redacted === 1
     });
   }
@@ -60,7 +60,7 @@ export function buildSessionData(sessionId: string): ExportSession | null {
   }
 
   const durationMs = (session.ended_at || Date.now()) - session.started_at;
-  const durationStr = \`\${Math.round(durationMs / 60000)} min\`;
+  const durationStr = `${Math.round(durationMs / 60000)} min`;
 
   return {
     id: session.id,

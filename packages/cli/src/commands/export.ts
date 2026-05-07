@@ -11,7 +11,7 @@ import path from 'path';
 export async function exportCmd(options: { format?: string, output?: string, session?: string }) {
   let sessionId = options.session;
   if (!sessionId) {
-    const session = getActiveSession(process.env.SHELL || 'unknown');
+    const session = await getActiveSession(process.env.SHELL || 'unknown');
     if (!session) {
       console.log('No active session.');
       return;
@@ -19,7 +19,7 @@ export async function exportCmd(options: { format?: string, output?: string, ses
     sessionId = session.id;
   }
 
-  const data = buildSessionData(sessionId);
+  const data = await buildSessionData(sessionId);
   if (!data) return;
 
   const format = options.format || 'md';
