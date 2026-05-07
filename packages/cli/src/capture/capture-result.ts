@@ -1,45 +1,76 @@
 #!/usr/bin/env node
-import { insertCommand } from '../db/command';
-import { getActiveSession, createSession } from '../db/session';
+import { getSessionById, createSession } from '../db/session';
+import { addCommand } from '../db/command';
 import { redact } from './redact';
+import os from 'os';
+import fs from 'fs';
 
-const args = process.argv.slice(2);
-let cmd = '';
-let exitCode = 0;
-let dir = process.cwd();
-let start = Date.now();
+async function main() {
+  const args = process.argv.slice(2);
+  const params: any = {};
+  for (let i = 0; i < args.length; i += 2) {
+    const key = args[i].replace('--', '');
+    params[key] = args[i + 1];
+  }
 
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--cmd') cmd = args[++i];
-  if (args[i] === '--exit') exitCode = parseInt(args[++i], 10);
-  if (args[i] === '--dir') dir = args[++i];
-  if (args[i] === '--start') start = parseInt(args[++i], 10);
+  const shell = process.env.SHELL || 'pwsh';
+  const sessionId = params['session-id'];
+  
+  let session;
+  if (sessionId) {
+    session = await getSessionById(sessionId);
+  }
+
+  if (!session) {
+    session = await createSession({
+      id: sessionId, // Use the provided unique ID from the shell
+      shell,
+      hostname: os.hostname(),
+      username: os.userInfo().username,
+    });
+  }
+
+  if (session.is_paused) return;
+
+  const cmd = params.cmd || '';
+  const isAnnotation = cmd.startsWith('#! ');
+  let annotation = '';
+  let finalCmd = cmd;
+
+  if (isAnnotation) {
+    annotation = cmd.substring(3);
+    finalCmd = 'comment';
+  }
+
+  let output = params.output || '';
+  if (params['output-file'] && fs.existsSync(params['output-file'])) {
+    try {
+      output = fs.readFileSync(params['output-file'], 'utf-8');
+      
+      // Clean up PowerShell transcript noise
+      output = output.replace(/\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*[\s\S]*?\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*/g, '');
+      output = output.replace(/Windows PowerShell transcript start[\s\S]*?Command line:.*/g, '');
+      output = output.replace(/PowerShell transcript start[\s\S]*?Command line:.*/g, '');
+      output = output.trim();
+
+      fs.unlinkSync(params['output-file']); // Clean up
+    } catch (e) {
+      console.error('Failed to read output file:', e);
+    }
+  }
+
+  const redacted = redact(finalCmd);
+
+  await addCommand({
+    session_id: session.id,
+    directory: params.dir || process.cwd(),
+    command: redacted.text,
+    output: output,
+    exit_code: parseInt(params.exit) || 0,
+    duration_ms: Math.max(0, Date.now() - Math.floor(parseFloat(params.start || Date.now().toString()))),
+    annotation: annotation || undefined,
+    is_redacted: redacted.wasRedacted ? 1 : 0
+  });
 }
 
-if (!cmd) process.exit(0);
-
-let annotation = '';
-if (cmd.startsWith('#! ')) {
-  annotation = cmd.substring(3);
-}
-
-const { text: redactedCmd, wasRedacted: cmdRedacted } = redact(cmd);
-const shell = process.env.SHELL || 'unknown';
-
-let session = getActiveSession(shell);
-if (!session) {
-  const sessionId = createSession({ shell, started_at: start });
-  session = { id: sessionId, shell, started_at: start, ended_at: null, hostname: null, username: null, git_repo: null, tags: '[]', summary: null, is_paused: 0 };
-}
-
-insertCommand({
-  session_id: session.id,
-  timestamp: start,
-  directory: dir,
-  command: redactedCmd,
-  output: '', 
-  exit_code: exitCode,
-  duration_ms: Date.now() - start,
-  annotation,
-  is_redacted: cmdRedacted ? 1 : 0
-});
+main().catch(console.error);

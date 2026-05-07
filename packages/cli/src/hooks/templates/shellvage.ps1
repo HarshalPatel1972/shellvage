@@ -1,32 +1,54 @@
-$global:__sv_cmd = ""
-$global:__sv_start = 0
-
-function Invoke-ShellvagePreCommand {
-    $global:__sv_cmd = $MyInvocation.Line
-    $global:__sv_start = [int64](([datetime]::UtcNow)-(Get-Date "1970-01-01T00:00:00Z")).TotalMilliseconds
+# shellvage.ps1 - Master Template
+if (!$global:shellvage_session_id) {
+    $global:shellvage_session_id = [guid]::NewGuid().ToString()
 }
 
-function Invoke-ShellvagePostCommand {
-    $exit_code = $LASTEXITCODE
-    if ($global:__sv_cmd) {
-        # Execute asynchronously
-        Start-Process -NoNewWindow -FilePath "shellvage-capture-result" -ArgumentList "--cmd", "`"$global:__sv_cmd`"", "--exit", "$exit_code", "--dir", "`"$PWD`"", "--start", "$global:__sv_start"
-        $global:__sv_cmd = ""
+$global:shellvage_transcript_path = Join-Path $env:TEMP "shellvage_$($global:shellvage_session_id).log"
+
+function Shellvage-PreCommand {
+    $global:shellvage_start_time = [Math]::Floor([double](Get-Date -UFormat %s) * 1000)
+    $marker = "[SV_MARKER_$($global:shellvage_session_id)_$(Get-Random)]"
+    $global:shellvage_last_marker = $marker
+    Write-Host $marker -ForegroundColor Black -BackgroundColor Black
+}
+
+function Shellvage-PostCommand {
+    $exitCode = if ($global:?) { 0 } else { 1 }
+    $history = Get-History -Count 1
+    if ($history) {
+        $cmd = $history.CommandLine
+        $dir = Get-Location
+        $start = $global:shellvage_start_time
+        
+        Stop-Transcript | Out-Null
+        $content = Get-Content $global:shellvage_transcript_path -Raw
+        
+        $marker = $global:shellvage_last_marker
+        $lastOutput = ""
+        if ($content -match [regex]::Escape($marker)) {
+            $lastOutput = ($content -split [regex]::Escape($marker))[-1]
+            $lastOutput = $lastOutput -replace "Transcript stopped.*", ""
+            $lastOutput = $lastOutput.Trim()
+        }
+        
+        $outputFile = Join-Path $env:TEMP "sv_out_$(Get-Random).txt"
+        $lastOutput | Out-File -FilePath $outputFile -Encoding utf8
+        
+        Start-Transcript -Path $global:shellvage_transcript_path -Append -NoClobber | Out-Null
+        
+        $cliPath = "shellvage-capture" # Use global command
+        Start-Process -FilePath "node" -ArgumentList "(Get-Command $cliPath).Source", "--session-id", "`"$($global:shellvage_session_id)`"", "--cmd", "`"$cmd`"", "--exit", $exitCode, "--dir", "`"$dir`"", "--start", $start, "--output-file", "`"$outputFile`"" -WindowStyle Hidden
     }
 }
 
-# Hook into Prompt
-$global:OriginalPrompt = $function:prompt
-function prompt {
-    Invoke-ShellvagePostCommand
-    & $global:OriginalPrompt
+if (!(Test-Path $global:shellvage_transcript_path)) {
+    Start-Transcript -Path $global:shellvage_transcript_path -NoClobber | Out-Null
 }
 
-# Use PSReadLine to intercept commands if available
-if (Get-Module PSReadLine) {
-    Set-PSReadLineOption -HistorySaveStyle SaveAtExit
-    Set-PSReadLineKeyHandler -Key Enter -ScriptBlock {
-        Invoke-ShellvagePreCommand
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-    }
+$oldPrompt = $function:prompt
+function global:prompt {
+    Shellvage-PostCommand
+    $p = & $oldPrompt
+    Shellvage-PreCommand
+    return "⬤ sv $p"
 }

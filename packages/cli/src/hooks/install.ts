@@ -37,4 +37,7 @@ export function installHooks() {
 
   const psConfig = path.join('Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1');
   inject(psConfig, [`. ~/.shellvage/hooks/shellvage.ps1`]);
+
+  const winPsConfig = path.join('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1');
+  inject(winPsConfig, [`. ~/.shellvage/hooks/shellvage.ps1`]);
 }
