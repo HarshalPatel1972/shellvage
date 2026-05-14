@@ -2,10 +2,12 @@ import chalk from 'chalk';
 
 export const paletteHex = {
   ember: '#E8A045',
-  ash: '#A0A0A0',
+  accent: '#7DF9A0', // Mint Green
+  accent2: '#4DFFCF', // Cyan
+  ash: '#E0E0E0', // Brighter for visibility
   ink: '#0D0D0D',
   signal: '#4ADE80',
-  muted: '#555555',
+  muted: '#AAAAAA', // Brighter for visibility
   error: '#FF4444',
   info: '#60A5FA',
   bgSurface: '#18181B'
@@ -13,6 +15,8 @@ export const paletteHex = {
 
 export const palette = {
   ember: chalk.hex(paletteHex.ember),
+  accent: chalk.hex(paletteHex.accent),
+  accent2: chalk.hex(paletteHex.accent2),
   ash: chalk.hex(paletteHex.ash),
   ink: chalk.hex(paletteHex.ink),
   signal: chalk.hex(paletteHex.signal),
