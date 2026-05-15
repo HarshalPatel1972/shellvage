@@ -26,10 +26,31 @@ export const palette = {
 };
 
 export function renderWordmark(version: string) {
-  const line1 = palette.ember(`  ⬡  shellvage  `) + palette.muted(`v${version}`);
-  const line2 = palette.ash(`     salvage your sessions`);
-  console.log(line1);
-  console.log(line2);
+  console.log();
+  
+  // Scaled down massive block font (6 chars per letter) to prevent terminal wrapping alignment issues
+  const shell = [
+    ` ████  ██ ██ █████ ██    ██   `,
+    ` ██    ██ ██ ██    ██    ██   `,
+    ` ████  █████ ████  ██    ██   `,
+    `   ██  ██ ██ ██    ██    ██   `,
+    ` ████  ██ ██ █████ █████ █████`
+  ];
+
+  const vage = [
+    ` ██ ██  ███   ████ █████ `,
+    ` ██ ██ ██ ██ ██    ██    `,
+    ` ██ ██ █████ ██ ██ ████  `,
+    `  ███  ██ ██ ██ ██ ██    `,
+    `   █   ██ ██  ████ █████ `
+  ];
+
+  // Render font with full-height blinking | cursor
+  for (let i = 0; i < 5; i++) {
+    const cursor = palette.accent('\x1b[5m|\x1b[25m');
+    console.log('  ' + palette.accent(shell[i]) + chalk.whiteBright(vage[i]) + cursor);
+  }
+  
   console.log();
 }
 
