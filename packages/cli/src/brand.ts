@@ -51,6 +51,17 @@ export function renderWordmark(version: string) {
     console.log('  ' + palette.accent(shell[i]) + chalk.whiteBright(vage[i]) + cursor);
   }
   
+  // Separator matching the new width
+  console.log('  ' + palette.accent('───────────────────────────────────────────────────────'));
+  
+  // Tagline
+  console.log(`  ${palette.accent2('//')} ${palette.muted('salvage your sessions.')}`);
+  console.log();
+  
+  // Meta row
+  const badge = chalk.bgHex('#122218').hex(paletteHex.accent)(` v${version} `);
+  const metaText = palette.muted(`windows-native · telemetry engine`);
+  console.log(`  ${badge}  ${metaText}`);
   console.log();
 }
 
