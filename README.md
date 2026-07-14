@@ -21,26 +21,19 @@ Shellvage is a background terminal recorder and companion GUI application design
 
 Shellvage operates in two parts: a background daemon hooked into your shell profile, and a native GUI app to browse your history.
 
-### Prerequisites
-- Node.js (v18+)
-- PowerShell (Windows)
+### 1. The Desktop App (Windows)
+The easiest way to get started is to download the compiled setup file.
+1. Go to the [Releases](https://github.com/HarshalPatel1972/shellvage/releases) page on this repository.
+2. Download the latest `Shellvage_x.x.x_setup.exe`.
+3. Run the installer to install the native GUI application on your machine.
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/HarshalPatel1972/shellvage.git
-   ```
-2. Navigate into the project and install dependencies:
-   ```bash
-   cd shellvage
-   npm install
-   ```
-3. Build the CLI package:
-   ```bash
-   cd packages/cli
-   npm run build
-   ```
+### 2. The CLI Engine
+To power the background recording and terminal annotations, you need the CLI tool installed globally.
+Ensure you have Node.js (v18+) installed, then open your terminal and run:
+```bash
+npm install -g shellvage
+```
+*Note: If you are building from source instead, you can clone the repository, run `npm install`, and build the CLI manually.*
 
 ---
 

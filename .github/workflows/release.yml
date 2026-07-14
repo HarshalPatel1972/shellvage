@@ -1,0 +1,48 @@
+name: 'Publish Native GUI Release'
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest]
+    
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build CLI Package
+        run: npm run build
+        working-directory: packages/cli
+        
+      - name: Build and Publish Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Shellvage ${{ github.ref_name }}'
+          releaseBody: 'Download the Setup executable below. Source code is also attached.'
+          releaseDraft: false
+          prerelease: false
+          args: '--target x86_64-pc-windows-msvc'
+          projectPath: packages/app
